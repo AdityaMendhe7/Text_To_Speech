@@ -1,6 +1,6 @@
 const axios = require("axios");
 const fs = require("fs");
-const json = require("./bankDetails.json");
+const json = require("./input.json");
 
 async function voiceapi(payload) {
   let result;
