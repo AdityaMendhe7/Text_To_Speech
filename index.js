@@ -20,6 +20,6 @@ for (let i = 0; i < json.length; i++) {
         }]
     });
 }
-
-// Write the transformed data to "output.json"
 fs.writeFileSync("output.json", JSON.stringify(transformedData, null, 2));
+
+
