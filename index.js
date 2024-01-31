@@ -32,7 +32,7 @@ async function main() {
   console.log("Creating audios Please wait😮‍💨😮‍💨😮‍💨")
   for (let i = 0; i < json.length; i++) {
     const payload = {
-      Text: `${json[i].answers_asm}`
+      Text: `${json[i].answers_asm}`  // Audio text key
     };
 
     const result = await voiceapi(payload);
