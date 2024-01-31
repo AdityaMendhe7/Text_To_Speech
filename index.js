@@ -29,10 +29,10 @@ async function voiceapi(payload) {
 async function main() {
   const output = [];
 
+  console.log("Creating audios Please wait😮‍💨😮‍💨😮‍💨")
   for (let i = 0; i < json.length; i++) {
-    const bankUrl = json[i].bankUrl || "ইয়াত";
     const payload = {
-      Text: `নিশ্চয়, '${json[i].bank_name}' ৰ যোগাযোগৰ তথ্য আপোনালোকক শ্বেয়াৰ কৰিব পাৰিম। আপুনি '${json[i].customer_care}' নম্বৰত যোগাযোগ কৰিব পাৰে। বা '${json[i].email_Id}' লৈ লিখক। বা আপুনি চাব পাৰে '${json[i].bankUrl}'`
+      Text: `${json[i].answers_asm}`
     };
 
     const result = await voiceapi(payload);
