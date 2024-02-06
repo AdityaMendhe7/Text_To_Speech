@@ -40,46 +40,48 @@ async function voiceapi(payload) {
 }
 
 async function main() {
-    const output = [];
-  
-    for (let i = 0; i < json.length; i++) {
-      let answerText = json[i].answers_asm    // Audio text key;
-  
-      // Check if answerText is defined before processing
-      if (answerText !== undefined) {
-        // Remove specific HTML tags from the answer text
-        answerText = answerText.replace(/<br>/gi, "");
-        answerText = answerText.replace(/<b>/gi, "");
-        answerText = answerText.replace(/<a[^>]*>(.*?)<\/a>/gi, "$1");
-        // answerText = answerText.replace(/-/g, "");
-        answerText = answerText.replace(/#N\/A/g, "");
-        answerText = answerText.replace(/<li><\/li>/gi, "");
-        answerText = answerText.replace(/\n/gi, "");
-  
-        const payload = {
-          sourceText: answerText,
-          sourceLanguage: "en",
-        };
-  
-        const result = await voiceapi(payload);
-        if (result) {
-          const audioUrl = result["Uploaded URL"];
-          const audioNumber = i + 1;
-  
-          console.log("%d Audio URL: \x1b[32m%s\x1b[0m", audioNumber, audioUrl);
-  
-          output.push({
-            Answer: payload.sourceText,
-            Answer_audio: result["Uploaded URL"],
-          });
-        }
-      } else {
-        console.warn("answerText is undefined for item at index", i);
+  const output = [];
+
+ console.log("Creating Your Audios")
+  for (let i = 0; i < json.length; i++) {
+    let answerText = json[i].answers; // Audio text key;
+
+    // Check if answerText is defined before processing
+    if (answerText !== undefined) {
+      // Remove specific HTML tags from the answer text
+      answerText = answerText.replace(/<br>/gi, "");
+      answerText = answerText.replace(/<b>/gi, "");
+      answerText = answerText.replace(/<a[^>]*>(.*?)<\/a>/gi, "$1");
+      // ...
+
+      // answerText = answerText.replace(/-/g, "");
+      answerText = answerText.replace(/#N\/A/g, "");
+      answerText = answerText.replace(/<li><\/li>/gi, "");
+      answerText = answerText.replace(/\n/gi, "");
+
+      const payload = {
+        sourceText: answerText,
+        sourceLanguage: "bn",
+      };
+
+      const result = await voiceapi(payload);
+      if (result) {
+        const audioUrl = result["Uploaded URL"];
+        const audioNumber = i + 1;
+       
+        // console.log("%d Audio URL: \x1b[32m%s\x1b[0m", audioNumber, audioUrl);
+
+        output.push({
+          Answer: payload.sourceText,
+          Answer_audio: result["Uploaded URL"],
+        });
       }
+    } else {
+      console.warn("answerText is undefined for item at index", i);
     }
-  
-    fs.writeFileSync("output.json", JSON.stringify(output));
   }
-  
+
+  fs.writeFileSync("output.json", JSON.stringify(output));
+}
 
 main();
