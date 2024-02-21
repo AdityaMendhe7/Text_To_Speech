@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const json = require('./input.json');
 
-const answers = json.map(item => item.answers_or);
+const answers = json.map(item => item.answers_asm);
 
 const formatData = (answers) => {
   const formattedData = answers.map(answer => {

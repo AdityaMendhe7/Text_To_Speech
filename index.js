@@ -1,20 +1,19 @@
 const fs = require('fs');
+const path = require('path');
 const json = require('./input.json');
 
-const answers = json.map(item => item.answers_or);
+const formatData = (json) => {
+  const formattedData = json.map(item => {
+    const answers = Array.isArray(item.answers_asm) ? item.answers_asm.map(subAnswer => subAnswer.answer) : [];
+    return {
+      categoryQuestion_asm: item.categoryQuestion_asm,
+      answer: answers
+    };
+  });
 
-const csv = answers.map(answer => {
-  const row = [];
-  for (const key in answer) {
-    if (typeof answer[key] === 'object') {
-      for (const subKey in answer[key]) {
-        row.push(answer[key][subKey]);
-      }
-    } else {
-      row.push(answer[key]);
-    }
-  }
-  return row.join(',');
-});
+  return formattedData;
+};
 
-fs.writeFileSync('output.json', JSON.stringify(csv));
+const output = formatData(json);
+
+fs.writeFileSync(path.join(__dirname, 'output.json'), JSON.stringify(output, null, 2));
