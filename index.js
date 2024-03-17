@@ -1,50 +1,48 @@
-const axios = require("axios");
-const fs = require("fs");
-const json = require("./bankDetails.json");
+const fs = require('fs');
+const { Client } = require('pg');
 
-async function voiceapi(payload) {
-  let result;
-  const axiosConfig = {
-    headers: {
-      "appId": "0708775d-c6af-4a88-ac47-346571727a0a",
-      "Content-Type": "application/json"
-    },
-  };
+// PostgreSQL database configuration
+const client = new Client({
+  type: "postgres",
+  host: "postgres.gcp.corover.ai",
+  port: 5432,
+  username: "postgres",
+  password: "PVc)4tWX$oMB",
+  database: "postgres",
+  schema: "npci_test",
+});
 
-  try {
-    const res = await axios.post(
-      "https://pmkisan.corover.ai/pmkisanAPI/nlp/VoiceApiBhashini/as",
-      payload,
-      axiosConfig
-    );
-    result = res.data;
-  } catch (error) {
-    console.error(error);
-    result = null;
-  }
+// Connect to the database
+client.connect()
+  .then(() => console.log('Connected to PostgreSQL database'))
+  .catch(err => console.error('Connection error', err.stack));
 
-  return result;
-}
+// Read CSV file and auto-generate columns
+fs.readFile('your_file.csv', 'utf8', (err, data) => {
+  if (err) throw err;
+  
+  // Split the CSV data into rows
+  const rows = data.trim().split('\n');
+  
+  // Get column names from the first row
+  const columns = rows.shift().split(',');
 
-async function main() {
-  const output = [];
-
-  for (let i = 0; i < json.length; i++) {
-    const bankUrl = json[i].bankUrl || "ইয়াত";
-    const payload = {
-      Text: `নিশ্চয়, '${json[i].bank_name}' ৰ যোগাযোগৰ তথ্য আপোনালোকক শ্বেয়াৰ কৰিব পাৰিম। আপুনি '${json[i].customer_care}' নম্বৰত যোগাযোগ কৰিব পাৰে। বা '${json[i].email_Id}' লৈ লিখক। বা আপুনি চাব পাৰে '${json[i].bankUrl}'`
-    };
-
-    const result = await voiceapi(payload);
-    if (result) {
-      output.push({
-        input: payload.Text,
-        output: result,
-      });
+  // Generate CREATE TABLE query
+  let query = 'CREATE TABLE IF NOT EXISTS your_table (';
+  columns.forEach((column, index) => {
+    if (index !== 0) {
+      query += ', ';
     }
-  } 
+    query += `${column} VARCHAR(255)`; // Assuming all columns are of type VARCHAR(255), you can modify it accordingly
+  });
+  query += ')';
 
-  fs.writeFileSync("output.json", JSON.stringify(output, null, 2));
-}
+  // Execute the CREATE TABLE query
+  client.query(query, (err, result) => {
+    if (err) throw err;
+    console.log('Table created successfully');
 
-main();
+    // Close the database connection
+    client.end();
+  });
+});
