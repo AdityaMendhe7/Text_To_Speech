@@ -25,7 +25,7 @@ const axiosConfig = {
 async function voiceapi(payload) {
   try {
     const res = await axios.post(
-      "https://licdev.corover.ai/nlpAPI/convertRealTimeAudioWav",
+      "https://licdev.corover.ai/nlpAPI/convertRealTimeAudio",
       payload,
       axiosConfig
     );
@@ -45,14 +45,14 @@ async function main() {
   
   const output = await Promise.all(
     json.map(async (item, index) => {
-      const answerText = item.Answers;
+      const answerText = item.Answers_kn;  // <==== changes
 
       if (answerText !== undefined) {
         const cleanedText = removeHtmlTags(answerText).replace(/#N\/A/g, "").replace(/<li><\/li>/gi, "").replace(/\n/gi, "");
         
         const payload = {
           sourceText: cleanedText,
-          sourceLanguage: "en",
+          sourceLanguage: "ka",   // <==== changes
         };
 
         const result = await voiceapi(payload);
