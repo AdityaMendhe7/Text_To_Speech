@@ -1,50 +1,31 @@
-const axios = require("axios");
-const fs = require("fs");
-const json = require("./bankDetails.json");
+const axios = require('axios');
+const data = require("./input.json");
+const fs = require('fs');
+const results = [];
 
-async function voiceapi(payload) {
-  let result;
-  const axiosConfig = {
-    headers: {
-      "appId": "0708775d-c6af-4a88-ac47-346571727a0a",
-      "Content-Type": "application/json"
-    },
-  };
-
-  try {
-    const res = await axios.post(
-      "https://pmkisan.corover.ai/pmkisanAPI/nlp/VoiceApiBhashini/as",
-      payload,
-      axiosConfig
-    );
-    result = res.data;
-  } catch (error) {
-    console.error(error);
-    result = null;
-  }
-
-  return result;
-}
-
-async function main() {
-  const output = [];
-
-  for (let i = 0; i < json.length; i++) {
-    const bankUrl = json[i].bankUrl || "ইয়াত";
+data.forEach(textObj => {
+    const promptText = textObj.Query;
     const payload = {
-      Text: `নিশ্চয়, '${json[i].bank_name}' ৰ যোগাযোগৰ তথ্য আপোনালোকক শ্বেয়াৰ কৰিব পাৰিম। আপুনি '${json[i].customer_care}' নম্বৰত যোগাযোগ কৰিব পাৰে। বা '${json[i].email_Id}' লৈ লিখক। বা আপুনি চাব পাৰে '${json[i].bankUrl}'`
+        prompt: promptText
     };
 
-    const result = await voiceapi(payload);
-    if (result) {
-      output.push({
-        input: payload.Text,
-        output: result,
-      });
-    }
-  } 
+    const url = `http://192.46.213.85:9001/bharatgpt/getResponse`;
 
-  fs.writeFileSync("output.json", JSON.stringify(output, null, 2));
-}
+    axios.post(url, payload)
+        .then((response) => {
+            const bharatgpt_response = response.data.reply;
+            results.push({ Query: promptText, Answer: textObj.Answer, bharatgpt_response: bharatgpt_response });
 
-main();
+            const jsonData = JSON.stringify(results);
+            fs.writeFile("./result.json", jsonData, (err) => {
+                if (err) {
+                    console.error("Error writing file:", err);
+                } else {
+                    console.log("File is created successfully.");
+                }
+            });
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+});
