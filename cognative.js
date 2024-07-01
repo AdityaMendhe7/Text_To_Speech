@@ -26,7 +26,7 @@ async function voiceapi(payload) {
 
   try {
     const res = await axios.post(
-      "https://cognitive.service.corover.ai/dynamic/convertRealTimeAudioWav",
+      "https://cognitive.service.corover.ai/dynamic/convertRealTimeAudio",
       payload,
       axiosConfig
     );
@@ -56,8 +56,8 @@ async function main() {
   const answerOutput = [];
 
   for (let i = 0; i < json.length; i++) {
-    let answerText = json[i].answers_kn;
-    // Remove specific HTML tags from the answer text
+    let answerText = json[i].Answer;
+   
     answerText = answerText.replace(/<br>/gi, "");
     answerText = answerText.replace(/<b>/gi, "");
     answerText = answerText.replace(/’/gi, "");
@@ -71,7 +71,7 @@ async function main() {
 
     const payload = {
       sourceText: answerText,
-      sourceLanguage: "ka",
+      sourceLanguage: "en",
     };
 
     const result = await voiceapi(payload);
@@ -80,7 +80,7 @@ async function main() {
       const audioUrl = bucketstore;
       const audioNumber = i + 1;
 
-      // Display the console log with the numbered format and green Audio URL
+    
       console.log("%d Audio URL: \x1b[32m%s\x1b[0m", audioNumber, audioUrl);
 
       output.push({
@@ -98,7 +98,7 @@ async function main() {
     }
   }
 
-  fs.writeFileSync("CognativeOutput.json", JSON.stringify(output));
+  fs.writeFileSync("sebinew.json", JSON.stringify(output));
   // fs.writeFileSync("Answer.json", JSON.stringify(answerOutput));
 }
 
