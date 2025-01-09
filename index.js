@@ -1,50 +1,58 @@
-const axios = require("axios");
-const fs = require("fs");
-const json = require("./bankDetails.json");
+const fs = require('fs');
 
-async function voiceapi(payload) {
-  let result;
-  const axiosConfig = {
-    headers: {
-      "appId": "0708775d-c6af-4a88-ac47-346571727a0a",
-      "Content-Type": "application/json"
-    },
-  };
+// Step 1: Read the JSON file
+const filePath = '/Users/adityamendhe/Documents/GitHub/context-bot-node/Utilities/encodedData.json'; // Replace with the path to your JSON file
 
-  try {
-    const res = await axios.post(
-      "https://pmkisan.corover.ai/pmkisanAPI/nlp/VoiceApiBhashini/as",
-      payload,
-      axiosConfig
-    );
-    result = res.data;
-  } catch (error) {
-    console.error(error);
-    result = null;
+fs.readFile(filePath, 'utf8', (err, data) => {
+  if (err) {
+    console.error('Error reading the file:', err);
+    return;
   }
 
-  return result;
-}
+  try {
+    // Step 2: Parse the JSON data
+    const jsonData = JSON.parse(data);
 
-async function main() {
-  const output = [];
+    // Step 3: Decode Base64 for the 'answer' field
+    const decodeBase64 = (encodedText) => {
+      if (typeof encodedText !== 'string') {
+        console.error('Invalid Base64 encoded text:', encodedText);
+        return ''; // Return empty string if it's not valid Base64
+      }
 
-  for (let i = 0; i < json.length; i++) {
-    const bankUrl = json[i].bankUrl || "ইয়াত";
-    const payload = {
-      Text: `নিশ্চয়, '${json[i].bank_name}' ৰ যোগাযোগৰ তথ্য আপোনালোকক শ্বেয়াৰ কৰিব পাৰিম। আপুনি '${json[i].customer_care}' নম্বৰত যোগাযোগ কৰিব পাৰে। বা '${json[i].email_Id}' লৈ লিখক। বা আপুনি চাব পাৰে '${json[i].bankUrl}'`
+      try {
+        return Buffer.from(encodedText, 'base64').toString('utf-8');
+      } catch (error) {
+        console.error('Error decoding Base64:', error);
+        return encodedText; // Return the original text if decoding fails
+      }
     };
 
-    const result = await voiceapi(payload);
-    if (result) {
-      output.push({
-        input: payload.Text,
-        output: result,
-      });
-    }
-  } 
+    // Step 4: Iterate over the JSON data and decode each 'answer' field
+    const decodedAnswers = jsonData.map((entry) => {
+      if (entry.answer) {
+        const decodedAnswer = decodeBase64(entry.answer);
+        return { decodedAnswer };
+      } else {
+        console.error('Error: "answer" field is missing in one of the entries.');
+        return null; // Return null for entries without the 'answer' field
+      }
+    }).filter(Boolean); // Filter out any null values from the array
 
-  fs.writeFileSync("output.json", JSON.stringify(output, null, 2));
-}
+    // Step 5: Log the decoded answers to console
+    console.log('Decoded Answers:', decodedAnswers);
 
-main();
+    // Step 6: Write the decoded answers to a new file
+    const outputFilePath = './decodedAnswers.json';
+    fs.writeFile(outputFilePath, JSON.stringify(decodedAnswers, null, 2), (writeErr) => {
+      if (writeErr) {
+        console.error('Error writing the decoded data:', writeErr);
+        return;
+      }
+      console.log('Decoded answers successfully written to', outputFilePath);
+    });
+
+  } catch (parseError) {
+    console.error('Error parsing JSON:', parseError);
+  }
+});
