@@ -1,50 +1,97 @@
-const axios = require("axios");
 const fs = require("fs");
-const json = require("./bankDetails.json");
 
-async function voiceapi(payload) {
-  let result;
-  const axiosConfig = {
-    headers: {
-      "appId": "0708775d-c6af-4a88-ac47-346571727a0a",
-      "Content-Type": "application/json"
-    },
-  };
+// Input and Output JSON file paths
+const inputFilePath =
+  "/Users/adityamendhe/Documents/GitHub/context-bot-node/Utilities/input.json";
+const outputFilePath =
+  "/Users/adityamendhe/Documents/GitHub/context-bot-node/Utilities/output.json";
 
+// Function to generate utterances based on a question
+function generateUtterances(question) {
+  // Extract core part of the question
+  const corePhrase = extractCorePhrase(question);
+
+  // Return the core phrase directly (not an array)
+  return corePhrase;
+}
+
+// Function to extract the core phrase from a question
+function extractCorePhrase(question) {
+  // List of words to remove (common question words)
+  const stopWords = [
+    "what",
+    "who",
+    "where",
+    "why",
+    "how",
+    "does",
+    "is",
+    "are",
+    "can",
+    "could",
+    "the",
+    "to",
+    "for",
+    "of",
+    "and",
+    "as",
+    "in",
+    "on",
+    "at",
+    "by",
+    "that",
+    "this",
+    "a",
+    "much"
+  ];
+
+  // Remove punctuation from the question
+  const cleanedQuestion = question.replace(/[!?.,;()]/g, "");
+
+  // Convert the question to lowercase and split it into words
+  const words = cleanedQuestion.toLowerCase().split(" ");
+
+  // Remove common words (stop words) and return the remaining words as the core phrase
+  const coreWords = words.filter((word) => !stopWords.includes(word));
+
+  // Reassemble and return the remaining words as the core phrase
+  return coreWords.join(" ");
+}
+
+// Function to process the input JSON and generate utterances
+function processQuestions(inputPath, outputPath) {
   try {
-    const res = await axios.post(
-      "https://pmkisan.corover.ai/pmkisanAPI/nlp/VoiceApiBhashini/as",
-      payload,
-      axiosConfig
-    );
-    result = res.data;
-  } catch (error) {
-    console.error(error);
-    result = null;
-  }
+    // Read the input JSON file
+    const data = fs.readFileSync(inputPath, "utf8");
+    const jsonData = JSON.parse(data);
 
-  return result;
-}
-
-async function main() {
-  const output = [];
-
-  for (let i = 0; i < json.length; i++) {
-    const bankUrl = json[i].bankUrl || "ইয়াত";
-    const payload = {
-      Text: `নিশ্চয়, '${json[i].bank_name}' ৰ যোগাযোগৰ তথ্য আপোনালোকক শ্বেয়াৰ কৰিব পাৰিম। আপুনি '${json[i].customer_care}' নম্বৰত যোগাযোগ কৰিব পাৰে। বা '${json[i].email_Id}' লৈ লিখক। বা আপুনি চাব পাৰে '${json[i].bankUrl}'`
-    };
-
-    const result = await voiceapi(payload);
-    if (result) {
-      output.push({
-        input: payload.Text,
-        output: result,
-      });
+    // Validate the structure of the JSON file
+    if (!Array.isArray(jsonData) || !jsonData.every((item) => item.defaultQuery)) {
+      throw new Error(
+        "Invalid JSON format. Expected an array of objects with 'Question' keys."
+      );
     }
-  } 
 
-  fs.writeFileSync("output.json", JSON.stringify(output, null, 2));
+    // Generate utterances for each question
+    const results = jsonData.map((item) => {
+      const question = item.defaultQuery;
+
+      // Generate utterances for the given question
+      const utterances = generateUtterances(question);
+
+      return {
+        question,
+        utterances, // Here, 'utterances' will now be a string, not an array.
+      };
+    });
+
+    // Save the results to the output JSON file
+    fs.writeFileSync(outputPath, JSON.stringify(results, null, 2), "utf8");
+    console.log(`Utterances have been saved to ${outputPath}`);
+  } catch (error) {
+    console.error("Error reading or processing the JSON file:", error);
+  }
 }
 
-main();
+// Run the function
+processQuestions(inputFilePath, outputFilePath);
