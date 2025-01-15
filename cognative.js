@@ -56,7 +56,7 @@ async function main() {
   const answerOutput = [];
 
   for (let i = 0; i < json.length; i++) {
-    let answerText = json[i].Answer;
+    let answerText = json[i].Answers;  //<==== EDIT KEY HERE
    
     answerText = answerText.replace(/<br>/gi, "");
     answerText = answerText.replace(/<b>/gi, "");
@@ -98,7 +98,7 @@ async function main() {
     }
   }
 
-  fs.writeFileSync("sebinew.json", JSON.stringify(output));
+  fs.writeFileSync("Output.json", JSON.stringify(output));
   // fs.writeFileSync("Answer.json", JSON.stringify(answerOutput));
 }
 
